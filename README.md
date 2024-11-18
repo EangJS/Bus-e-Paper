@@ -1,53 +1,75 @@
-| Supported Targets | ESP32 | ESP32-C2 | ESP32-C3 | ESP32-C5 | ESP32-C6 | ESP32-C61 | ESP32-H2 | ESP32-P4 | ESP32-S2 | ESP32-S3 | Linux |
-| ----------------- | ----- | -------- | -------- | -------- | -------- | --------- | -------- | -------- | -------- | -------- | ----- |
+# E-Paper Bus Arrival Display
 
-# Hello World Example
+A low power IOT device to show you bus arrival timings so you know when to leave your house. Powered by the ESP-32-DEVKITV1 and WaveShare 2.9 inch e-Paper V2.
 
-Starts a FreeRTOS task to print "Hello World".
+Shows the estimated arrival time and type of bus. DD - Double Deck | SD - Single Deck of up to 2 bus stops with maximum of 8-9 services.
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+![1731932145950](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/eugen/Documents/Workspace/Waveshare/image/README/1731932145950.png "Bus Display")
 
-## How to use example
+## Getting Started
 
-Follow detailed instructions provided specifically for this example.
+⚠️ Note: You must first obtain your own api key from [LTA DataMall](https://datamall.lta.gov.sg/content/datamall/en/request-for-api.html).
 
-Select the instructions depending on Espressif chip installed on your development board:
+1. Clone this repository.
+2. Include a `secrets.h` file in the `/main/include` directory with the following contents.
 
-- [ESP32 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/stable/get-started/index.html)
-- [ESP32-S2 Getting Started Guide](https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/get-started/index.html)
+   ```
+   #define WIFI_SSID "<YOUR WI-FI SSID>" 
+   #define WIFI_PASS "<YOUR WI-FI PASSWORD>" 
+   #define BASE_URL "http://datamall2.mytransport.sg/ltaodataservice/BusArrivalv2"  // The base URL without parameters
+   #define API_KEY "<YOUR API KEY>"
+   ```
+3. Compile and build with the [ESP-IDF](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/get-started/index.html).
+4. Connect the wirings to the e-Paper display accordingly.
 
+| E-Paper | ESP32 DEVKITV1 |
+| ------- | -------------- |
+| DIN     | 23             |
+| CLK     | 18             |
+| CS      | 19             |
+| DC      | 21             |
+| RST     | 22             |
+| BUSY    | 5              |
+| VCC     | 3.3V           |
+| GND     | GND            |
 
-## Example folder contents
+5. Power on and display it.
 
-The project **hello_world** contains one source file in C language [hello_world_main.c](main/hello_world_main.c). The file is located in folder [main](main).
+## Configuring Bus Stops
 
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt` files that provide set of directives and instructions describing the project's source files and targets (executable, library, or both).
+You can configure the bus stops you want to display in `main.c`.
 
-Below is short explanation of remaining files in the project folder.
+Simply edit the lines by changing the bus stop code to your desired ones.
 
 ```
-├── CMakeLists.txt
-├── pytest_hello_world.py      Python script used for automated testing
-├── main
-│   ├── CMakeLists.txt
-│   └── hello_world_main.c
-└── README.md                  This is the file you are currently reading
+        cJSON* response_1 = get_bus_timing("55029");
+        cJSON* response_2 = get_bus_timing("55021");
 ```
 
-For more information on structure and contents of ESP-IDF projects, please refer to Section [Build System](https://docs.espressif.com/projects/esp-idf/en/latest/esp32/api-guides/build-system.html) of the ESP-IDF Programming Guide.
+⚠️ Note: The firmware currently only supports 2 bus stops due to display limitations.
+
+🔨 Work in Progress: Web-UI to edit WiFi SSID and Password as well as configure bus stop.
+
+You can also configure the referesh rate. Default is set to 1 minute for operational periods and 2 minutes for non-operational periods.
+
+Simply edit the lines in `main.c` by changing the value 60000 (in ms).
+
+```
+vTaskDelay(60000 / portTICK_PERIOD_MS); // Update every minute
+```
+
+🔨 Work in Progress: Web-UI to edit refresh rate.
 
 ## Troubleshooting
 
 * Program upload failure
 
-    * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
-    * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
+  * Hardware connection is not correct: run `idf.py -p PORT monitor`, and reboot your board to see if there are any output logs.
+  * The baud rate for downloading is too high: lower your baud rate in the `menuconfig` menu, and try again.
 
-## Technical support and feedback
+## Credits
 
-Please use the following feedback channels:
-
-* For technical queries, go to the [esp32.com](https://esp32.com/) forum
-* For a feature request or bug report, create a [GitHub issue](https://github.com/espressif/esp-idf/issues)
-
-We will get back to you as soon as possible.
+* [ESP API Guides](https://docs.espressif.com/projects/esp-idf/en/stable/esp32/api-guides/index.html)
+* [waveshareteam/e-paper](https://github.com/waveshareteam/e-Paper/tree/master/Arduino_R4/src)
+* [LTA DataMall API](https://datamall.lta.gov.sg/content/datamall/en.html)
+* ChatGPT generated content

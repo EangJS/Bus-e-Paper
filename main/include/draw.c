@@ -96,7 +96,7 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
     uint16_t array_size = cJSON_GetArraySize(services); // Get the size of the array
     if (array_size == 0) {
         Paint_DrawString_EN(5, idx, "No services available", &Font12, WHITE, BLACK); 
-        return idx + 10; //new start y pos    
+        return idx + 12; //new start y pos    
     }
 
     for (uint8_t i = 0; i < array_size; i++) {
@@ -110,8 +110,8 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
             cJSON *next_bus_1 = cJSON_GetObjectItem(service, "NextBus");
             if (next_bus_1 != NULL){                        
                 char* estimated_arrival = cJSON_GetObjectItem(next_bus_1, "EstimatedArrival")->valuestring;
-                ESP_LOGI(TAG,"%s",service_no);
-                ESP_LOGI(TAG,"%s",estimated_arrival);
+                //ESP_LOGI(TAG,"%s",service_no);
+                //ESP_LOGI(TAG,"%s",estimated_arrival);
                 int arrival_time = get_time_difference(estimated_arrival);
                 char* type = cJSON_GetObjectItem(next_bus_1, "Type")->valuestring;
                 if (arrival_time <= 0) {
@@ -123,8 +123,8 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
             cJSON *next_bus_2 = cJSON_GetObjectItem(service, "NextBus2");
             if (next_bus_2 != NULL){                        
                 char* estimated_arrival = cJSON_GetObjectItem(next_bus_2, "EstimatedArrival")->valuestring;
-                ESP_LOGI(TAG,"%s",service_no);
-                ESP_LOGI(TAG,"%s",estimated_arrival);
+                //ESP_LOGI(TAG,"%s",service_no);
+                //ESP_LOGI(TAG,"%s",estimated_arrival);
                 int arrival_time = get_time_difference(estimated_arrival);
                 char* type = cJSON_GetObjectItem(next_bus_1, "Type")->valuestring;
                 if (arrival_time <= 0) {
@@ -140,7 +140,7 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
             new_offset = y;      
         } 
     }
-    return new_offset + 10; //new start y pos
+    return new_offset + 12; //new start y pos
 
 
 }
