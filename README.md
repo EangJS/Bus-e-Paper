@@ -4,7 +4,7 @@ A low power IOT device to show you bus arrival timings so you know when to leave
 
 Shows the estimated arrival time and type of bus. DD - Double Deck | SD - Single Deck of up to 2 bus stops with maximum of 8-9 services.
 
-![1731932145950](https://file+.vscode-resource.vscode-cdn.net/c%3A/Users/eugen/Documents/Workspace/Waveshare/image/README/1731932145950.png "Bus Display")
+![1731932145950](image/README/1731932145950.png "Bus Display")
 
 ## Getting Started
 
