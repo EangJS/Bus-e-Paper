@@ -114,9 +114,13 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
                 //ESP_LOGI(TAG,"%s",estimated_arrival);
                 int arrival_time = get_time_difference(estimated_arrival);
                 char* type = cJSON_GetObjectItem(next_bus_1, "Type")->valuestring;
-                if (arrival_time <= 0) {
+                if (arrival_time < -10) {
+                    snprintf(arrival_time_1, sizeof(arrival_time_1), "NA - %s", type); // Assign "NA" when arrival_time < -10
+                } 
+                else if (arrival_time <= 0) {
                     snprintf(arrival_time_1, sizeof(arrival_time_1), "Arr - %s", type); // Assign "Arr" when arrival_time <= 0
-                } else {
+                }
+                else {
                     snprintf(arrival_time_1, sizeof(arrival_time_1), "%d mins - %s", arrival_time, type); // Format the arrival_time as a string
                 }                
             }                    
@@ -127,9 +131,13 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
                 //ESP_LOGI(TAG,"%s",estimated_arrival);
                 int arrival_time = get_time_difference(estimated_arrival);
                 char* type = cJSON_GetObjectItem(next_bus_1, "Type")->valuestring;
-                if (arrival_time <= 0) {
+                if (arrival_time < -10) {
+                    snprintf(arrival_time_2, sizeof(arrival_time_2), "NA - %s", type); // Assign "NA" when arrival_time < -10
+                } 
+                else if (arrival_time <= 0) {
                     snprintf(arrival_time_2, sizeof(arrival_time_2), "Arr - %s", type); // Assign "Arr" when arrival_time <= 0
-                } else {
+                }
+                else {
                     snprintf(arrival_time_2, sizeof(arrival_time_2), "%d mins - %s", arrival_time, type); // Format the arrival_time as a string
                 }
             } 
