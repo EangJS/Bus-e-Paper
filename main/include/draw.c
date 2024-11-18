@@ -1,6 +1,10 @@
 #include "draw.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 
 #define TAG "DRAW"
+
+extern UBYTE *BlackImage;
 
 int get_time_difference(const char *target_time_str) {
     // Parse the target time string (format: "2024-11-18T02:58:24+08:00")
@@ -31,38 +35,6 @@ int get_time_difference(const char *target_time_str) {
     return (int)difference_in_minutes;
 }
 
-void draw_sample(void){   
-
-    UBYTE *BlackImage;
-    UWORD Imagesize = ((EPD_2IN9_V2_WIDTH % 8 == 0)? (EPD_2IN9_V2_WIDTH / 8 ): (EPD_2IN9_V2_WIDTH / 8 + 1)) * EPD_2IN9_V2_HEIGHT;
-
-    Imagesize = ((EPD_2IN9_V2_WIDTH % 4 == 0)? (EPD_2IN9_V2_WIDTH / 4 ): (EPD_2IN9_V2_WIDTH / 4 + 1)) * EPD_2IN9_V2_HEIGHT;
-    if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
-        return;
-    }
-    EPD_2IN9_V2_Gray4_Init();
-    //Debug("4 grayscale display\r\n");
-    Paint_NewImage(BlackImage, EPD_2IN9_V2_WIDTH, EPD_2IN9_V2_HEIGHT, 90, WHITE);  	
-    Paint_SetScale(4);
-    Paint_Clear(0xff);
-    
-    Paint_DrawPoint(10, 80, GRAY4, DOT_PIXEL_1X1, DOT_STYLE_DFT);
-    Paint_DrawPoint(10, 90, GRAY4, DOT_PIXEL_2X2, DOT_STYLE_DFT);
-    Paint_DrawPoint(10, 100, GRAY4, DOT_PIXEL_3X3, DOT_STYLE_DFT);
-    Paint_DrawLine(20, 70, 70, 120, GRAY4, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
-    Paint_DrawLine(70, 70, 20, 120, GRAY4, DOT_PIXEL_1X1, LINE_STYLE_SOLID);
-    Paint_DrawRectangle(20, 70, 70, 120, GRAY4, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-    Paint_DrawRectangle(80, 70, 130, 120, GRAY4, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-    Paint_DrawCircle(45, 95, 20, GRAY4, DOT_PIXEL_1X1, DRAW_FILL_EMPTY);
-    Paint_DrawCircle(105, 95, 20, GRAY2, DOT_PIXEL_1X1, DRAW_FILL_FULL);
-    Paint_DrawLine(85, 95, 125, 95, GRAY4, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
-    Paint_DrawLine(105, 75, 105, 115, GRAY4, DOT_PIXEL_1X1, LINE_STYLE_DOTTED);
-    Paint_DrawString_EN(10, 0, "waveshare", &Font16, GRAY4, GRAY1);
-    Paint_DrawString_EN(10, 20, "hello world", &Font12, GRAY3, GRAY1);
-    Paint_DrawNum(10, 33, 123456789, &Font12, GRAY4, GRAY2);
-    Paint_DrawNum(10, 50, 987654321, &Font16, GRAY1, GRAY4);
-    epaper_overwrite_image(BlackImage);
-}
 
 uint16_t write_bus_stop(cJSON* response, uint16_t idx){     
     cJSON* busStopCode = cJSON_GetObjectItem(response, "BusStopCode");   
@@ -76,20 +48,19 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
     Paint_DrawString_EN(5, idx+1, busStopCode->valuestring, &Font12, BLACK, WHITE);
     Paint_DrawString_EN(50, idx+1, strcmp(busStopCode->valuestring, "55029") == 0 ? "Seasons Pk" : "Opp Seasons Pk" , &Font12, WHITE, BLACK);
 
-    /*Getting the current time*/
-    time_t current_time = time(NULL);
-    setenv("TZ", "UTC-8", 1);
-    tzset();
-    struct tm *local_time = localtime(&current_time);
-
-    if (local_time != NULL) {
-        char time_string[64];
-        strftime(time_string, sizeof(time_string), "Updated: %H:%M %d-%m-%Y", local_time);
-        Paint_DrawString_EN(EPD_2IN9_V2_HEIGHT - 130, idx+3, time_string, &Font8, WHITE, BLACK);
-    } else {
-        ESP_LOGE(TAG, "Failed to get local time");
-    }    
-        
+    if (idx == 0){
+        /*Drawing the current time*/
+        time_t current_time = time(NULL);
+        struct tm *local_time = localtime(&current_time);
+        if (local_time != NULL) {
+            char time_string[64];
+            strftime(time_string, sizeof(time_string), "Updated:%H:%M:%S %d-%m-%Y", local_time);
+            Paint_DrawString_EN(EPD_2IN9_V2_HEIGHT - 140, idx+3, time_string, &Font8, WHITE, BLACK);
+        } else {
+            ESP_LOGE(TAG, "Failed to get local time");
+        }   
+    }
+  
     idx += 15;
     
     /*Drawing the bus timings*/
@@ -153,23 +124,44 @@ uint16_t write_bus_stop(cJSON* response, uint16_t idx){
 
 }
 
-void display_bus(cJSON* response_1, cJSON* response_2){
-    UBYTE *BlackImage;
-    UWORD Imagesize = ((EPD_2IN9_V2_WIDTH % 8 == 0)? (EPD_2IN9_V2_WIDTH / 8 ): (EPD_2IN9_V2_WIDTH / 8 + 1)) * EPD_2IN9_V2_HEIGHT;
+void update_offservice(void){
 
-    Imagesize = ((EPD_2IN9_V2_WIDTH % 4 == 0)? (EPD_2IN9_V2_WIDTH / 4 ): (EPD_2IN9_V2_WIDTH / 4 + 1)) * EPD_2IN9_V2_HEIGHT;
-    if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
-        return;
-    }
-    EPD_2IN9_V2_Gray4_Init();
+    /*Drawing the current time*/
+    time_t current_time = time(NULL);
+    struct tm *local_time = localtime(&current_time);
+    if (local_time != NULL) {
+        char time_string[64];
+        strftime(time_string, sizeof(time_string), "Updated:%H:%M:%S %d-%m-%Y", local_time);
+        Paint_ClearWindows(EPD_2IN9_V2_HEIGHT - 140, 3, 150 + Font8.Width * 26, 3 + Font8.Height, WHITE);
+        Paint_DrawString_EN(EPD_2IN9_V2_HEIGHT - 140, 3, time_string, &Font8, WHITE, BLACK);
+    } else {
+        ESP_LOGE(TAG, "Failed to get local time");
+    }   
+    epaper_display_partial(BlackImage);
+}
+
+void display_bus(cJSON* response_1, cJSON* response_2){
+    epaper_init_fast();
     Paint_NewImage(BlackImage, EPD_2IN9_V2_WIDTH, EPD_2IN9_V2_HEIGHT, 90, WHITE);  	
-    Paint_SetScale(4);
+    Paint_SelectImage(BlackImage);
     Paint_Clear(0xff);
 
     uint16_t idx = 0;
     idx = write_bus_stop(response_1,idx);
     idx = write_bus_stop(response_2,idx);    
 
-    epaper_overwrite_image(BlackImage);
-    free(BlackImage);   
+    time_t current_time = time(NULL);
+    struct tm *local_time = localtime(&current_time);
+    if (local_time != NULL) {
+        char time_string[64];
+        strftime(time_string, sizeof(time_string), "Updated:%H:%M:%S %d-%m-%Y", local_time);
+        Paint_ClearWindows(EPD_2IN9_V2_HEIGHT - 140, 3, 150 + Font8.Width * 26, 3 + Font8.Height, WHITE);
+        Paint_DrawString_EN(EPD_2IN9_V2_HEIGHT - 140, 3, time_string, &Font8, WHITE, BLACK);
+    } else {
+        ESP_LOGE(TAG, "Failed to get local time");
+    }  
+    //epaper_display_partial(BlackImage);
+    epaper_display(BlackImage);
+
+    //epaper_overwrite_image(BlackImage); 
 }

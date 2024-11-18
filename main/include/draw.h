@@ -7,5 +7,5 @@
 #include <stdio.h>
 #include <string.h>
 
-void draw_sample(void);
 void display_bus(cJSON* response_1, cJSON* response_2);
+void update_offservice(void);

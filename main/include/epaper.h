@@ -31,3 +31,6 @@ void epaper_send_command(UBYTE command);
 void epaper_send_data(uint8_t data);
 void epaper_overwrite_image(UBYTE *Image);
 void EPD_2IN9_V2_Gray4_Init(void);
+void epaper_display_partial(UBYTE *Image);
+void epaper_init_fast(void);
+void epaper_display(UBYTE *Image);

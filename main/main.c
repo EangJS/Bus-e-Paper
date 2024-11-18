@@ -26,7 +26,7 @@ static const char *TAG = "MAIN";
 // SPI Clock Speed
 #define SPI_CLOCK_SPEED_HZ  4000000 // 4 MHz (Adjust as needed)
 
-
+UBYTE *BlackImage;
 spi_device_handle_t spi;
 
 
@@ -52,6 +52,16 @@ void epaper_task(void *arg) {
     epaper_clear_screen();
     //draw_sample();
 
+    UWORD Imagesize = ((EPD_2IN9_V2_WIDTH % 8 == 0)? (EPD_2IN9_V2_WIDTH / 8 ): (EPD_2IN9_V2_WIDTH / 8 + 1)) * EPD_2IN9_V2_HEIGHT;
+
+    Imagesize = ((EPD_2IN9_V2_WIDTH % 4 == 0)? (EPD_2IN9_V2_WIDTH / 4 ): (EPD_2IN9_V2_WIDTH / 4 + 1)) * EPD_2IN9_V2_HEIGHT;
+    if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
+        return;
+    }
+
+    Paint_NewImage(BlackImage, EPD_2IN9_V2_WIDTH, EPD_2IN9_V2_HEIGHT, 90, WHITE);
+	Paint_Clear(WHITE);
+
     int active = 1;
     
     while (1) {
@@ -60,7 +70,7 @@ void epaper_task(void *arg) {
 
         if (response_1 == NULL || response_2 == NULL) {
             ESP_LOGE(TAG, "Error fetching bus timings");
-            vTaskDelay(60000 / portTICK_PERIOD_MS); // Retry after 1 minute
+            vTaskDelay(5000 / portTICK_PERIOD_MS); // Retry after 5 seconds
             continue;
         }
 
@@ -68,19 +78,23 @@ void epaper_task(void *arg) {
         cJSON* services_2 = cJSON_GetObjectItem(response_2, "Services");
         uint8_t num_services_1 = cJSON_GetArraySize(services_1);
         uint8_t num_services_2 = cJSON_GetArraySize(services_2);
-        if(num_services_1 > 0 && num_services_2 > 0){
+        if(num_services_1 > 0 || num_services_2 > 0){
             display_bus(response_1,response_2); // there are services available to show
             active = 1;
         } else{            
-            if (active) display_bus(response_1, response_2);
+            if (active) {
+                display_bus(response_1, response_2);
+            } else {
+                update_offservice();
+            }
             active = 0;   
             ESP_LOGI("SLEEP", "Off-Service - Extra minute sleep");  
-            vTaskDelay(60000 / portTICK_PERIOD_MS); // Inactive, update additional minute       
+            vTaskDelay(120000 / portTICK_PERIOD_MS); // Inactive, update additional 2 minute       
         }
         cJSON_Delete(response_1);
         cJSON_Delete(response_2);
           
-        vTaskDelay(60000 / portTICK_PERIOD_MS); // Update every minute
+        vTaskDelay(60000 / portTICK_PERIOD_MS); // Update every minute        
     }
     
 }
