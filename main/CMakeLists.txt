@@ -1,5 +1,13 @@
-set(COMPONENT_REQUIRES "json")
+set(COMPONENT_REQUIRES json)
 
-idf_component_register(SRCS "main.c" "include/epaper.c" "include/draw.c" "include/paint.c" "include/Fonts/font16.c" "include/Fonts/font8.c" "include/Fonts/font12.c" "include/bus.c" "include/wifi.c"
-                    INCLUDE_DIRS "include" "include/Fonts"
-                    )
+# Use GLOB_RECURSE to find all .c files in the src directory and include/Fonts directory
+FILE(GLOB_RECURSE SRC_FILES 
+    "src/*.c"
+    "include/Fonts/*.c"
+)
+
+# Register the component with the required source files
+idf_component_register(
+    SRCS "main.c" ${SRC_FILES}
+    INCLUDE_DIRS "include" "include/Fonts"
+)

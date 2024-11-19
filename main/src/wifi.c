@@ -1,3 +1,14 @@
+/**
+ * @file wifi.c
+ * @author Eugene Ang
+ * @brief Handles the Wi-Fi connection and event handling
+ * @version 1.1.0
+ * @date 2024-11-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include "wifi.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -16,7 +27,14 @@ static const char *TAG = "WiFi";
 
 int s_retry_num = 0;
 
-/* Event handler for Wi-Fi events */
+/**
+ * @brief Event handler for Wi-Fi events
+ * 
+ * @param arg 
+ * @param event_base 
+ * @param event_id 
+ * @param event_data 
+ */
 static void event_handler(void* arg, esp_event_base_t event_base,
                                 int32_t event_id, void* event_data)
 {
@@ -39,7 +57,10 @@ static void event_handler(void* arg, esp_event_base_t event_base,
     }
 }
 
-
+/**
+ * @brief Initialize the Wi-Fi connection
+ * 
+ */
 void wifi_init_sta(void)
 {
     s_wifi_event_group = xEventGroupCreate();
@@ -98,6 +119,10 @@ void wifi_init_sta(void)
     }
 }
 
+/**
+ * @brief Connect to Wi-Fi
+ * 
+ */
 void connect_to_wifi(void){
     //Initialize NVS
     esp_err_t ret = nvs_flash_init();

@@ -1,8 +1,16 @@
+/**
+ * @file epaper.h
+ * @author Eugene Ang
+ * @brief Header file for the e-paper display - Handles the initialization and display of the e-paper display
+ * @version 1.1.0
+ * @date 2024-11-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
 #include <inttypes.h>
 
-/**
- * data
-**/
 #define UBYTE   uint8_t
 #define UWORD   uint16_t
 #define UDOUBLE uint32_t
@@ -21,16 +29,41 @@
 #define PIN_RST     22
 #define PIN_BUSY    5
 
-// Function prototypes
+/**
+ * @brief Initialize the e-paper display
+ * 
+ */
 void epaper_init(void);
-void epaper_reset(void);
+
+/**
+ * @brief Clear the e-paper display
+ * 
+ */
 void epaper_clear_screen(void);
-void epaper_set_cursor(UWORD Xstart, UWORD Ystart);
-void epaper_read_busy(void);
-void epaper_send_command(UBYTE command);
-void epaper_send_data(uint8_t data);
+
+/**
+ * @brief Overwrite the image on the e-paper display
+ * 
+ * @param Image Image to be displayed
+ */
 void epaper_overwrite_image(UBYTE *Image);
-void EPD_2IN9_V2_Gray4_Init(void);
+
+/**
+ * @brief Update the e-paper display with a partial update
+ * 
+ * @param Image Image to be displayed
+ */
 void epaper_display_partial(UBYTE *Image);
+
+/**
+ * @brief Initialize the e-paper display with fast initialization (two flashes)
+ * 
+ */
 void epaper_init_fast(void);
+
+/**
+ * @brief Display the image on the e-paper display (full update)
+ * 
+ * @param Image Image to be displayed
+ */
 void epaper_display(UBYTE *Image);

@@ -1,7 +1,12 @@
-/*
- * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
- *
- * SPDX-License-Identifier: CC0-1.0
+/**
+ * @file main.c
+ * @author Eugene Ang
+ * @brief Main entry point of the program. Initializes the e-paper display and starts the main task
+ * @version 1.1.0
+ * @date 2024-11-19
+ * 
+ * @copyright Copyright (c) 2024
+ * 
  */
 
 #include <stdio.h>
@@ -29,11 +34,19 @@ static const char *TAG = "MAIN";
 UBYTE *BlackImage;
 spi_device_handle_t spi;
 
-
+/**
+ * @brief Callback function to handle time synchronization
+ * 
+ * @param tv timeval structure containing the time
+ */
 void time_sync_notification_cb(struct timeval *tv) {
     ESP_LOGI(TAG,"Time synchronized\n");
 }
 
+/**
+ * @brief Initialize SNTP and set the timezone to Singapore
+ * 
+ */
 void initialize_sntp() {
     printf("Initializing SNTP...\n");
     esp_sntp_setoperatingmode(SNTP_OPMODE_POLL);
@@ -44,7 +57,11 @@ void initialize_sntp() {
     tzset();
 }
 
-// Task to control e-Paper
+/**
+ * @brief Main task to handle the e-paper display updates
+ * 
+ * @param arg NA
+ */
 void epaper_task(void *arg) {
     ESP_LOGI(TAG,"Resetting Display");
 
@@ -62,7 +79,8 @@ void epaper_task(void *arg) {
     Paint_NewImage(BlackImage, EPD_2IN9_V2_WIDTH, EPD_2IN9_V2_HEIGHT, 90, WHITE);
 	Paint_Clear(WHITE);
 
-    int active = 1;
+    uint8_t active = 1;
+    uint16_t counter = 0;
     
     while (1) {
         cJSON* response_1 = get_bus_timing("55029");
@@ -85,21 +103,31 @@ void epaper_task(void *arg) {
             if (active) {
                 display_bus(response_1, response_2);
             } else {
-                update_offservice();
+                if (counter > 10) {
+                    display_bus(response_1, response_2);
+                    counter = 0;
+                } else{
+                    update_offservice();
+                }
+                counter++;
             }
             active = 0;   
             ESP_LOGI("SLEEP", "Off-Service - Extra minute sleep");  
-            vTaskDelay(120000 / portTICK_PERIOD_MS); // Inactive, update additional 2 minute       
+            vTaskDelay((60000)*4 / portTICK_PERIOD_MS); // Inactive, update every 4+1 minutes       
         }
         cJSON_Delete(response_1);
         cJSON_Delete(response_2);
           
         vTaskDelay(60000 / portTICK_PERIOD_MS); // Update every minute        
+                
     }
     
 }
 
-// Main Application
+/**
+ * @brief Entry point of the program, initializes the GPIO pins and SPI bus
+ * 
+ */
 void app_main(void) {
     // Configure GPIO pins
     gpio_set_direction(PIN_DC, GPIO_MODE_OUTPUT);
